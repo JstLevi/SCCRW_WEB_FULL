@@ -1,0 +1,20 @@
+import fbIcon     from './fb-icon.png';
+import gmailIcon  from './gmail-icon.png';
+import homeBg     from './home-bg.png';
+import loginBg    from './login-bg.png';
+import mainBg     from './main-bg.png';
+import signupBg   from './signup-bg.png';
+import tabsBg     from './tabs-bg.png';
+import mainLogo   from "./main-logo.png";
+import birdIcon   from "./bird-icon.svg";
+import disconnect from "./disconnect.png";
+import connect    from "./connect.svg";
+import lowbat     from "./lowbat.png";
+import motion     from "./motion.png";  
+import update     from "./update.png";
+import snapshot   from "./snapshot.png";
+import liveFeed   from "./live-feed.png";
+import videoCam   from "./video-cam.png";
+import deviceActive from "./device-active.png";
+
+export { fbIcon, gmailIcon, homeBg, loginBg, mainBg, signupBg, tabsBg, mainLogo, birdIcon, disconnect, connect, lowbat, motion, update, snapshot, liveFeed, videoCam, deviceActive };
