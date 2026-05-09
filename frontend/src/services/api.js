@@ -1,5 +1,5 @@
 // src/services/api.js
-const BASE_URL = "http://127.0.0.1:8000/api";
+const BASE_URL = "http://192.168.100.19:8000/api";
 
 export const getAccessToken  = () => localStorage.getItem("access_token");
 export const getRefreshToken = () => localStorage.getItem("refresh_token");
