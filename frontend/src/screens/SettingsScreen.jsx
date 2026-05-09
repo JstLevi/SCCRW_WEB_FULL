@@ -1,25 +1,12 @@
 // src/screens/SettingsScreen.jsx
 // SAME UI as original. supabase.auth.signOut() → clearTokens() + onLogout()
 
-import { useState } from "react";
 import Icon from "../components/Icon";
-import { logoutUser } from "../services/authService";
 import { useAuth } from "../context/AuthContext";
 
-export default function SettingsScreen({ onLogout }) {
+export default function SettingsScreen() {
   const { user } = useAuth();
-  const [loading, setLoading] = useState(false);
 
-  const handleLogout = async () => {
-    const confirmed = window.confirm("Are you sure you want to log out?");
-    if (!confirmed) return;
-
-    setLoading(true);
-    // Clear JWT tokens from localStorage (replaces supabase.auth.signOut())
-    logoutUser();
-    onLogout();
-    setLoading(false);
-  };
 
   const settingsItems = [
     { icon: "person", label: "Account"        },
@@ -64,17 +51,7 @@ export default function SettingsScreen({ onLogout }) {
           </div>
         ))}
       </div>
-
-      {/* ── Log Out Button ── */}
-      <button
-        className="action-btn outline"
-        onClick={handleLogout}
-        disabled={loading}
-        style={{ marginTop: 8 }}
-      >
-        <Icon name="logout" size={18} color="#1a3a0d" />
-        {loading ? "Logging out…" : "Log Out"}
-      </button>
+      
     </>
   );
 }
