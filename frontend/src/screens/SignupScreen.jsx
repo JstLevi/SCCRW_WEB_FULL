@@ -15,6 +15,7 @@ export default function SignupScreen({ onNavigate }) {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
   // ✅ separate toggles (same behavior as LoginScreen)
   const [showPassword, setShowPassword] = useState(false);
@@ -26,6 +27,7 @@ export default function SignupScreen({ onNavigate }) {
   const handleSignUp = async (e) => {
     e.preventDefault();
     setError("");
+    setSuccess("");
 
     const {
       name,
@@ -77,8 +79,14 @@ export default function SignupScreen({ onNavigate }) {
       return;
     }
 
-    onNavigate("login", { phone: contactNumber.trim() });
+    setSuccess("Account created successfully!");
+
     setLoading(false);
+
+    setTimeout(() => {
+      onNavigate("login", { phone: contactNumber.trim() });
+    }, 1900);
+
   };
 
   return (
@@ -296,6 +304,12 @@ export default function SignupScreen({ onNavigate }) {
           {error && (
             <div className="error-box" style={{ marginTop: 16 }}>
               ⚠ {error}
+            </div>
+          )}
+
+          {success && (
+            <div className="success-box" style={{ marginTop: 16 }}>
+              ✓ {success}
             </div>
           )}
 

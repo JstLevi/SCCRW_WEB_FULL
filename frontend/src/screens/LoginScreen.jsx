@@ -10,6 +10,7 @@ export default function LoginScreen({ onNavigate, prefillPhone }) {
   const [password, setPassword] = useState("");
   const [loading, setLoading]   = useState(false);
   const [error, setError]       = useState("");
+  const [success, setSuccess]   = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
@@ -19,6 +20,7 @@ export default function LoginScreen({ onNavigate, prefillPhone }) {
   const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
+    setSuccess("");
     if (!username.trim() || !password.trim()) {
       setError("Please fill in all fields.");
       return;
@@ -34,9 +36,16 @@ export default function LoginScreen({ onNavigate, prefillPhone }) {
     }
     
     if (data && data.user) {
-      setUser(data.user);
+      setSuccess("Login successful!");
+
       setLoading(false);
-      onNavigate("home");
+
+      setTimeout(() => {
+        setUser(data.user);
+        onNavigate("home");
+      }, 1500);
+    
+      
     } else {
       setError("Login succeeded but no user data received.");
       setLoading(false);
@@ -133,6 +142,12 @@ export default function LoginScreen({ onNavigate, prefillPhone }) {
           {error && (
             <div className="error-box" style={{ animation: "none", opacity: 1 }}>
               {error}
+            </div>
+          )}
+
+          {success && (
+            <div className="success-box" style={{ animation: "none", opacity: 1 }}>
+              ✓ {success}
             </div>
           )}
 
