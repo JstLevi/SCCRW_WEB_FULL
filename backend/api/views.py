@@ -7,6 +7,7 @@ from django.contrib.auth import authenticate
 from django.utils import timezone
 from datetime import timedelta
 from .models import Device, BirdDetection, ActivityLog
+from django.contrib.auth.models import User
 from .serializers import (
     RegisterSerializer, UserSerializer, DeviceSerializer,
     BirdDetectionSerializer, ActivityLogSerializer
@@ -16,14 +17,27 @@ from .serializers import (
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def register(request):
+    username = request.data.get('username')
+
+    # Check if phone number already exists
+    if User.objects.filter(username=username).exists():
+        return Response(
+            {'error': 'Phone number already exists'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
     serializer = RegisterSerializer(data=request.data)
+
     if serializer.is_valid():
         user = serializer.save()
         refresh = RefreshToken.for_user(user)
-        
-        # Get full name from profile
-        full_name = user.profile.full_name if hasattr(user, 'profile') else user.username
-        
+
+        full_name = (
+            user.profile.full_name
+            if hasattr(user, 'profile')
+            else user.username
+        )
+
         return Response({
             'user': {
                 'id': user.id,
@@ -33,32 +47,50 @@ def register(request):
             'access': str(refresh.access_token),
             'refresh': str(refresh)
         }, status=status.HTTP_201_CREATED)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def login(request):
     username = request.data.get('username')
     password = request.data.get('password')
+
+    # Check if user exists
+    try:
+        user_obj = User.objects.get(username=username)
+    except User.DoesNotExist:
+        return Response(
+            {'error': 'Invalid credentials'},
+            status=status.HTTP_401_UNAUTHORIZED
+        )
+
+    # Check password
     user = authenticate(username=username, password=password)
+
+    if user is None:
+        return Response(
+            {'error': 'Wrong password'},
+            status=status.HTTP_401_UNAUTHORIZED
+        )
     
-    if user:
-        refresh = RefreshToken.for_user(user)
-        
-        # Get full name from profile
-        full_name = user.profile.full_name if hasattr(user, 'profile') else user.username
-        
-        return Response({
-            'user': {
-                'id': user.id,
-                'username': user.username,
-                'full_name': full_name,
-            },
-            'access': str(refresh.access_token),
-            'refresh': str(refresh)
-        })
-    return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+    refresh = RefreshToken.for_user(user)
+
+    full_name = (
+        user.profile.full_name
+        if hasattr(user, 'profile')
+        else user.username
+    )
+
+    return Response({
+        'user': {
+            'id': user.id,
+            'username': user.username,
+            'full_name': full_name,
+        },
+        'access': str(refresh.access_token),
+        'refresh': str(refresh)
+    })
 
 
 @api_view(['GET'])
