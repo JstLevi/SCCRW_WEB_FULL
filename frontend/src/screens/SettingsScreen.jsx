@@ -31,8 +31,8 @@ export default function SettingsScreen() {
                 {user.username?.[0]?.toUpperCase() || "U"}
               </div>
               <div>
-                <div className="info-value">{user.username}</div>
-                <div className="info-label">{user.email || "Farm Owner"}</div>
+                <div className="info-value">{user.full_name || user.username}</div>
+                <div className="info-label">{user.username || "Farm Owner"}</div>
               </div>
             </div>
           </div>

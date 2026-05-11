@@ -45,7 +45,7 @@ export default function LoginScreen({ onNavigate, prefillPhone }) {
 
   return (
     <div
-      className="auth-root"A
+      className="auth-root"
       style={{ 
         backgroundColor: "#dce5d2",
         backgroundSize: "cover", 

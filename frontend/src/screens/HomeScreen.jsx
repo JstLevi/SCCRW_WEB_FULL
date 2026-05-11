@@ -1,14 +1,11 @@
 // src/screens/HomeScreen.jsx
-// SAME UI as original. Static data → live from Django REST API.
-
-import { useState } from "react";
+import { useState, forwardRef, useImperativeHandle } from "react";
 import Icon from "../components/Icon";
 import useFetch from "../hooks/useFetch";
 import { getDevices, deleteDevice, updateDevice } from "../services/deviceService";
 import { getDetections } from "../services/detectionService";
 import { mainLogo, birdIcon } from "../assets/images";
 
-// Loading skeleton that matches card style
 function LoadingCard() {
   return (
     <div className="section-card" style={{ color: "#808080", fontSize: 13, textAlign: "center", padding: 24 }}>
@@ -17,18 +14,15 @@ function LoadingCard() {
   );
 }
 
-// Error inline display
 function InlineError({ msg }) {
   return (
     <div className="error-box" style={{ marginBottom: 16 }}>⚠ {msg}</div>
   );
 }
 
-export default function HomeScreen() {
-  // GET /api/devices/
+const HomeScreen = forwardRef((props, ref) => {
   const { data: devicesData, loading: devLoading, error: devError, refetch: refetchDevices } = useFetch(getDevices, []);
-  // GET /api/detections/
-  const { data: detections, loading: detLoading, error: detError } = useFetch(getDetections, []);
+  const { data: detections, loading: detLoading, error: detError, refetch: refetchDetections } = useFetch(getDetections, []);
   
   const [showManageModal, setShowManageModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -36,10 +30,19 @@ export default function HomeScreen() {
   const [editForm, setEditForm] = useState({ name: "", location: "" });
   const [updating, setUpdating] = useState(false);
 
-  // Extract devices from the paginated response (results array)
+  // ← Expose methods to DashboardLayout via ref
+  useImperativeHandle(ref, () => ({
+    refreshDevices: async () => {
+      await refetchDevices();
+    },
+    refreshData: async () => {
+      await refetchDevices();
+      await refetchDetections();
+    },
+  }));
+
   const devices = devicesData?.results || devicesData || [];
   
-  // Count detections per species for the bird stats grid
   const speciesCount = {};
   (detections || []).forEach((d) => {
     const s = d.bird_species || "Unknown";
@@ -47,13 +50,11 @@ export default function HomeScreen() {
   });
   const speciesEntries = Object.entries(speciesCount).slice(0, 4);
 
-  // Today's detections
   const today = new Date().toDateString();
   const todayDetections = (detections || []).filter(
     (d) => d.detected_at && new Date(d.detected_at).toDateString() === today
   );
 
-  // Recent activity log from detections (last 5)
   const recentLogs = (detections || [])
     .slice()
     .sort((a, b) => new Date(b.detected_at) - new Date(a.detected_at))
@@ -156,7 +157,6 @@ export default function HomeScreen() {
             </div>
           ))}
 
-          {/* Bird Detection Banner — live counts */}
           {!detLoading && (
             <div className="bird-banner">
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -171,7 +171,6 @@ export default function HomeScreen() {
             </div>
           )}
 
-          {/* Species Cards — live from API */}
           {speciesEntries.length > 0 && (
             <div className="species-grid">
               {speciesEntries.map(([species, count]) => (
@@ -243,7 +242,7 @@ export default function HomeScreen() {
                         </div>
                       </div>
                       <div className="device-actions">
-                        <button 
+                        <button
                           className="action-btn edit-btn"
                           onClick={() => {
                             setShowManageModal(false);
@@ -252,14 +251,14 @@ export default function HomeScreen() {
                         >
                           EDIT
                         </button>
-                        <button 
+                        <button
                           className="action-btn delete-btn"
                           onClick={() => {
                             setShowManageModal(false);
                             handleDeleteClick(device);
                           }}
                         >
-                            DELETE
+                          DELETE
                         </button>
                       </div>
                     </div>
@@ -313,14 +312,10 @@ export default function HomeScreen() {
         </div>
       )}
 
-      {/* Modal Styles */}
       <style jsx>{`
         .modal-overlay {
           position: fixed;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
+          top: 0; left: 0; right: 0; bottom: 0;
           background: rgba(0, 0, 0, 0.5);
           display: flex;
           align-items: center;
@@ -358,9 +353,7 @@ export default function HomeScreen() {
           cursor: pointer;
           color: #666;
         }
-        .modal-body {
-          margin-bottom: 20px;
-        }
+        .modal-body { margin-bottom: 20px; }
         .modal-buttons {
           display: flex;
           gap: 12px;
@@ -382,16 +375,9 @@ export default function HomeScreen() {
           border-radius: 6px;
           cursor: pointer;
         }
-        .btn-primary:hover {
-          background: #006600;
-        }
-        .btn-primary:disabled {
-          opacity: 0.6;
-          cursor: not-allowed;
-        }
-        .form-group {
-          margin-bottom: 16px;
-        }
+        .btn-primary:hover { background: #006600; }
+        .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+        .form-group { margin-bottom: 16px; }
         .form-label {
           display: block;
           margin-bottom: 8px;
@@ -405,10 +391,7 @@ export default function HomeScreen() {
           border-radius: 6px;
           font-size: 14px;
         }
-        .form-input:focus {
-          outline: none;
-          border-color: #004E00;
-        }
+        .form-input:focus { outline: none; border-color: #004E00; }
         .devices-list {
           display: flex;
           flex-direction: column;
@@ -423,28 +406,16 @@ export default function HomeScreen() {
           border-radius: 8px;
           background: #f9f9f9;
         }
-        .device-info {
-          flex: 1;
-        }
+        .device-info { flex: 1; }
         .device-info .device-name {
           font-size: 16px;
           font-weight: bold;
           color: #004E00;
           margin-bottom: 4px;
         }
-        .device-location {
-          font-size: 13px;
-          color: #666;
-          margin-bottom: 4px;
-        }
-        .device-status-badge {
-          font-size: 12px;
-          margin-top: 4px;
-        }
-        .device-actions {
-          display: flex;
-          gap: 8px;
-        }
+        .device-location { font-size: 13px; color: #666; margin-bottom: 4px; }
+        .device-status-badge { font-size: 12px; margin-top: 4px; }
+        .device-actions { display: flex; gap: 8px; }
         .action-btn {
           padding: 6px 12px;
           border: none;
@@ -453,21 +424,13 @@ export default function HomeScreen() {
           font-size: 13px;
           transition: all 0.2s;
         }
-        .edit-btn {
-          background: #2196F3;
-          color: white;
-        }
-        .edit-btn:hover {
-          background: #1976D2;
-        }
-        .delete-btn {
-          background: #ff4444;
-          color: white;
-        }
-        .delete-btn:hover {
-          background: #cc0000;
-        }
+        .edit-btn { background: #2196F3; color: white; }
+        .edit-btn:hover { background: #1976D2; }
+        .delete-btn { background: #ff4444; color: white; }
+        .delete-btn:hover { background: #cc0000; }
       `}</style>
     </>
   );
-}
+});
+
+export default HomeScreen;

@@ -34,10 +34,17 @@ class UserProfileAdmin(admin.ModelAdmin):
 
 @admin.register(Device)
 class DeviceAdmin(admin.ModelAdmin):
-    list_display = ['name', 'owner', 'location', 'status', 'is_active', 'created_at']
+    list_display = ['name', 'get_owner_name', 'location', 'status', 'is_active', 'created_at']
     list_filter = ['status', 'is_active']
-    search_fields = ['name', 'location']
+    search_fields = ['name', 'location', 'owner__profile__full_name']
     raw_id_fields = ['owner']
+
+    def get_owner_name(self, obj):
+        try:
+            return obj.owner.profile.full_name
+        except:
+            return obj.owner.username  # fallback to phone number
+    get_owner_name.short_description = 'Owner'
 
 
 @admin.register(BirdDetection)

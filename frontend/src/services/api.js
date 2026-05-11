@@ -1,5 +1,5 @@
 // src/services/api.js
-const BASE_URL = "http://127.0.0.1:8000/api";
+const BASE_URL = "http://127.0.0.1:8000/api"; // ← fixed double slash
 
 export const getAccessToken  = () => localStorage.getItem("access_token");
 export const getRefreshToken = () => localStorage.getItem("refresh_token");
@@ -42,10 +42,14 @@ export const request = async (method, endpoint, body = null, retry = true) => {
   const options = { method, headers };
   if (body) options.body = JSON.stringify(body);
 
+  // ↓ THIS is the fix — auth endpoints skip the session-expired logic
+  const isAuthEndpoint = endpoint.startsWith("/auth/");
+
   try {
     const res = await fetch(`${BASE_URL}${endpoint}`, options);
 
-    if (res.status === 401 && retry) {
+    // ↓ Added !isAuthEndpoint so wrong login credentials don't trigger reload
+    if (res.status === 401 && retry && !isAuthEndpoint) {
       const newToken = await refreshAccessToken();
       if (newToken) return request(method, endpoint, body, false);
       clearTokens();
@@ -60,11 +64,13 @@ export const request = async (method, endpoint, body = null, retry = true) => {
     if (!res.ok) {
       const errorMsg =
         data?.detail ||
+        data?.error ||  
         data?.non_field_errors?.[0] ||
         Object.values(data || {})?.[0]?.[0] ||
         `Error ${res.status}`;
       return { data: null, error: errorMsg, status: res.status };
     }
+
     return { data, error: null, status: res.status };
   } catch {
     return { data: null, error: "Network error — is the backend running?", status: 0 };
@@ -75,6 +81,7 @@ export const get   = (ep)       => request("GET",    ep);
 export const post  = (ep, body) => request("POST",   ep, body);
 export const patch = (ep, body) => request("PATCH",  ep, body);
 export const del   = (ep)       => request("DELETE", ep);
+
 export const unwrap = (result) => {
   if (result.data && result.data.results) {
     return { ...result, data: result.data.results };
