@@ -136,7 +136,7 @@ input, textarea { font-family: 'Poppins', sans-serif; outline: none; }
 .auth-title {
   font-size: 26px;
   font-weight: 700;
-  color: var(--green-mid);
+  color: #1a3a0d;
   margin-bottom: 6px;
 }
 
